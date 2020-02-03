@@ -187,7 +187,6 @@ impl Maze {
     /// Depth-first search
     fn astar(&self, initial: MazeLocation) -> Option<Node> {
         let mut frontier: BinaryHeap<Node> = BinaryHeap::new();
-        let mut steps = 0;
         frontier.push(Node {
             state: initial,
             parent: None,
@@ -209,11 +208,10 @@ impl Maze {
                 frontier.push(Node {
                     state: child,
                     parent: Some(cur_node.clone()),
-                    cost: steps,
+                    cost: cur_node.cost - 1,
                     heuristic: 0,
                 });
             }
-            steps += 1;
         }
         None
     }
