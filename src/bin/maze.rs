@@ -2,7 +2,7 @@
 use ndarray::prelude::*;
 use rand::prelude::*;
 use std::cmp::Ordering;
-use std::collections::{HashSet, VecDeque, BinaryHeap};
+use std::collections::{HashSet, BinaryHeap};
 use std::fmt;
 use std::rc::Rc;
 
