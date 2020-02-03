@@ -1,9 +1,9 @@
 //! maze solver
 use ndarray::prelude::*;
 use rand::prelude::*;
-use std::fmt;
 use std::cmp::Ordering;
-use std::collections::{VecDeque, HashSet};
+use std::collections::HashSet;
+use std::fmt;
 use std::rc::Rc;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -31,12 +31,15 @@ struct Node {
     heuristic: i32,
 }
 
+// #[derive(Clone, Debug, PartialEq, Eq, Hash)]
+// struct Route(LinkedList<Node>);
+
 impl Node {
     fn to_path(&self) -> Vec<MazeLocation> {
         let mut path: Vec<MazeLocation> = vec![self.state];
-        let node = self.parent.clone().unwrap();
+        let mut node = self;
         while node.parent != None {
-            let node = node.parent.clone().unwrap();
+            node = &node.parent.as_ref().unwrap();
             path.push(node.state);
         }
         path.reverse();
@@ -93,7 +96,7 @@ impl Maze {
         self.grid[[0, 0]] = Cell::Start;
         self.grid[[self.rows - 1, self.cols - 1]] = Cell::Goal;
     }
-    fn goal_test(&self, ml: MazeLocation) -> bool {
+    fn goal(&self, ml: MazeLocation) -> bool {
         ml == self.goal
     }
     fn successors(&self, m: MazeLocation) -> Vec<MazeLocation> {
@@ -101,10 +104,10 @@ impl Maze {
         let c = m.col;
         let mut locations: Vec<MazeLocation> = Vec::with_capacity(4);
         if r + 1 < self.rows as usize && self.grid[[r + 1, c]] != Cell::Blocked {
-            locations.push(MazeLocation { row: r + 1, col: c})
+            locations.push(MazeLocation { row: r + 1, col: c })
         }
         if m.col + 1 < self.cols as usize && self.grid[[r, c + 1]] != Cell::Blocked {
-            locations.push(MazeLocation { row: r, col: c + 1})
+            locations.push(MazeLocation { row: r, col: c + 1 })
         }
         if m.row != 0 && self.grid[[r - 1, c]] != Cell::Blocked {
             locations.push(MazeLocation { row: r - 1, col: c })
@@ -115,33 +118,31 @@ impl Maze {
         locations
     }
     fn dfs(&self, initial: MazeLocation) -> Option<Node> {
-        let mut frontier: Vec<Node> = Vec::new();
-        frontier.push(
-            Node {
-                state: initial,
-                parent: None,
-                cost: 0,
-                heuristic: 0,
-            }
-        );
-        let mut explored: HashSet<MazeLocation> = HashSet::new();
+        let mut frontier: Vec<Rc<Node>> = Vec::new();
+        frontier.push(Rc::new(Node {
+            state: initial,
+            parent: None,
+            cost: 0,
+            heuristic: 0,
+        }));
+        let mut seen: HashSet<MazeLocation> = HashSet::new(); // TODO: replace with Array2?
         while !frontier.is_empty() {
-            let current_node = Rc::new(frontier.pop().unwrap());
-            let current_state = current_node.state;
-            if self.goal_test(current_state) {
-                return Some(Rc::try_unwrap(current_node).unwrap());
+            let cur_node = frontier.pop().unwrap();
+            let cur_state = cur_node.state;
+            if self.goal(cur_state) {
+                return Some(Rc::try_unwrap(cur_node).unwrap());
             }
-            for child in self.successors(current_state) {
-                if explored.contains(&child) {
+            for child in self.successors(cur_state) {
+                if seen.contains(&child) {
                     continue;
                 }
-                explored.insert(child);
-                frontier.push(
-                    Node{
-                        state: child,
-                        parent: Some(current_node.clone()),
-                        cost: 0,
-                        heuristic: 0 })
+                seen.insert(child);
+                frontier.push(Rc::new(Node {
+                    state: child,
+                    parent: Some(cur_node.clone()),
+                    cost: 0,
+                    heuristic: 0,
+                }))
             }
         }
         None
@@ -168,10 +169,10 @@ impl fmt::Display for Maze {
         for (i, g) in self.grid.iter().enumerate() {
             s.push_str(match g {
                 Cell::Empty => " ",
-                Cell::Blocked => "O",
+                Cell::Blocked => "0",
                 Cell::Start => "S",
                 Cell::Goal => "G",
-                Cell::Path => "*",
+                Cell::Path => ".",
             });
             if i % self.rows == 0 {
                 s.push_str("\n");
@@ -186,7 +187,7 @@ fn main() {
     println!("{}", m);
     let sol1 = m.dfs(m.start);
     if sol1 == None {
-        println!("No solution found using depth-first search.")
+        println!("No solution found using depth-first search.");
     } else {
         let path1 = sol1.unwrap().to_path();
         m.mark(&path1);
