@@ -2,7 +2,7 @@
 use ndarray::prelude::*;
 use rand::prelude::*;
 use std::cmp::Ordering;
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque, BinaryHeap};
 use std::fmt;
 use std::rc::Rc;
 
@@ -31,9 +31,6 @@ struct Node {
     heuristic: i32,
 }
 
-// #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-// struct Route(LinkedList<Node>);
-
 impl Node {
     fn to_path(&self) -> Vec<MazeLocation> {
         let mut path: Vec<MazeLocation> = vec![self.state];
@@ -52,6 +49,14 @@ impl PartialOrd for Node {
         let a = self.cost + self.heuristic;
         let b = other.cost + other.heuristic;
         a.partial_cmp(&b)
+    }
+}
+
+impl Ord for Node {
+    fn cmp(&self, other: &Node) -> Ordering {
+        let a = self.cost + self.heuristic;
+        let b = other.cost + other.heuristic;
+        a.cmp(&b)
     }
 }
 
@@ -117,17 +122,18 @@ impl Maze {
         }
         locations
     }
-    fn dfs(&self, initial: MazeLocation) -> Option<Node> {
-        let mut frontier: Vec<Rc<Node>> = Vec::new();
-        frontier.push(Rc::new(Node {
+    /// Breadth-first search
+    fn bfs(&self, initial: MazeLocation) -> Option<Node> {
+        let mut frontier: VecDeque<Node> = VecDeque::new();
+        frontier.push_back(Node {
             state: initial,
             parent: None,
             cost: 0,
             heuristic: 0,
-        }));
+        });
         let mut seen: HashSet<MazeLocation> = HashSet::new(); // TODO: replace with Array2?
         while !frontier.is_empty() {
-            let cur_node = frontier.pop().unwrap();
+            let cur_node = Rc::new(frontier.pop_front().unwrap());
             let cur_state = cur_node.state;
             if self.goal(cur_state) {
                 return Some(Rc::try_unwrap(cur_node).unwrap());
@@ -137,13 +143,77 @@ impl Maze {
                     continue;
                 }
                 seen.insert(child);
-                frontier.push(Rc::new(Node {
+                frontier.push_back(Node {
                     state: child,
                     parent: Some(cur_node.clone()),
                     cost: 0,
                     heuristic: 0,
-                }))
+                })
             }
+        }
+        None
+    }
+    /// Depth-first search
+    fn dfs(&self, initial: MazeLocation) -> Option<Node> {
+        let mut frontier: Vec<Node> = Vec::new();
+        frontier.push(Node {
+            state: initial,
+            parent: None,
+            cost: 0,
+            heuristic: 0,
+        });
+        let mut seen: HashSet<MazeLocation> = HashSet::new(); // TODO: replace with Array2?
+        while !frontier.is_empty() {
+            let cur_node = Rc::new(frontier.pop().unwrap());
+            let cur_state = cur_node.state;
+            if self.goal(cur_state) {
+                return Some(Rc::try_unwrap(cur_node).unwrap());
+            }
+            for child in self.successors(cur_state) {
+                if seen.contains(&child) {
+                    continue;
+                }
+                seen.insert(child);
+                frontier.push(Node {
+                    state: child,
+                    parent: Some(cur_node.clone()),
+                    cost: 0,
+                    heuristic: 0,
+                })
+            }
+        }
+        None
+    }
+    /// Depth-first search
+    fn astar(&self, initial: MazeLocation) -> Option<Node> {
+        let mut frontier: BinaryHeap<Node> = BinaryHeap::new();
+        let mut steps = 0;
+        frontier.push(Node {
+            state: initial,
+            parent: None,
+            cost: 0,
+            heuristic: 0,
+        });
+        let mut seen: HashSet<MazeLocation> = HashSet::new(); // TODO: replace with Array2?
+        while !frontier.is_empty() {
+            let cur_node = Rc::new(frontier.pop().unwrap());
+            let cur_state = cur_node.state;
+            if self.goal(cur_state) {
+                return Some(Rc::try_unwrap(cur_node).unwrap());
+            }
+            for child in self.successors(cur_state) {
+                if seen.contains(&child) {
+                    continue;
+                }
+                seen.insert(child);
+                frontier.push(Node {
+                    state: child,
+                    parent: Some(cur_node.clone()),
+                    cost: steps,
+                    heuristic: 0,
+                });
+            }
+            steps += 1;
         }
         None
     }
@@ -183,9 +253,9 @@ impl fmt::Display for Maze {
 }
 
 fn main() {
-    let mut m = Maze::new(10, 10, 0.2);
+    let mut m = Maze::new(20, 20, 0.2);
     println!("{}", m);
-    let sol1 = m.dfs(m.start);
+    let sol1 = m.astar(m.start);
     if sol1 == None {
         println!("No solution found using depth-first search.");
     } else {
