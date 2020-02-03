@@ -2,6 +2,9 @@
 use ndarray::prelude::*;
 use rand::prelude::*;
 use std::fmt;
+use std::cmp::Ordering;
+use std::collections::{VecDeque, HashSet};
+use std::rc::Rc;
 
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Cell {
@@ -14,10 +17,39 @@ enum Cell {
 
 type Grid = Array2<Cell>;
 
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 struct MazeLocation {
     row: usize,
     col: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Node {
+    state: MazeLocation,
+    parent: Option<Rc<Node>>,
+    cost: i32,
+    heuristic: i32,
+}
+
+impl Node {
+    fn to_path(&self) -> Vec<MazeLocation> {
+        let mut path: Vec<MazeLocation> = vec![self.state];
+        let node = self.parent.clone().unwrap();
+        while node.parent != None {
+            let node = node.parent.clone().unwrap();
+            path.push(node.state);
+        }
+        path.reverse();
+        path
+    }
+}
+
+impl PartialOrd for Node {
+    fn partial_cmp(&self, other: &Node) -> Option<Ordering> {
+        let a = self.cost + self.heuristic;
+        let b = other.cost + other.heuristic;
+        a.partial_cmp(&b)
+    }
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -82,6 +114,52 @@ impl Maze {
         }
         locations
     }
+    fn dfs(&self, initial: MazeLocation) -> Option<Node> {
+        let mut frontier: Vec<Node> = Vec::new();
+        frontier.push(
+            Node {
+                state: initial,
+                parent: None,
+                cost: 0,
+                heuristic: 0,
+            }
+        );
+        let mut explored: HashSet<MazeLocation> = HashSet::new();
+        while !frontier.is_empty() {
+            let current_node = Rc::new(frontier.pop().unwrap());
+            let current_state = current_node.state;
+            if self.goal_test(current_state) {
+                return Some(Rc::try_unwrap(current_node).unwrap());
+            }
+            for child in self.successors(current_state) {
+                if explored.contains(&child) {
+                    continue;
+                }
+                explored.insert(child);
+                frontier.push(
+                    Node{
+                        state: child,
+                        parent: Some(current_node.clone()),
+                        cost: 0,
+                        heuristic: 0 })
+            }
+        }
+        None
+    }
+    fn mark(&mut self, path: &Vec<MazeLocation>) {
+        for p in path {
+            self.grid[[p.row, p.col]] = Cell::Path;
+        }
+        self.grid[[self.start.row, self.start.col]] = Cell::Start;
+        self.grid[[self.goal.row, self.goal.col]] = Cell::Goal;
+    }
+    fn clear(&mut self, path: &Vec<MazeLocation>) {
+        for p in path {
+            self.grid[[p.row, p.col]] = Cell::Empty;
+        }
+        self.grid[[self.start.row, self.start.col]] = Cell::Start;
+        self.grid[[self.goal.row, self.goal.col]] = Cell::Goal;
+    }
 }
 
 impl fmt::Display for Maze {
@@ -104,6 +182,15 @@ impl fmt::Display for Maze {
 }
 
 fn main() {
-    let m = Maze::new(10, 10, 0.2);
+    let mut m = Maze::new(10, 10, 0.2);
     println!("{}", m);
+    let sol1 = m.dfs(m.start);
+    if sol1 == None {
+        println!("No solution found using depth-first search.")
+    } else {
+        let path1 = sol1.unwrap().to_path();
+        m.mark(&path1);
+        println!("{}", m);
+        m.clear(&path1);
+    }
 }
