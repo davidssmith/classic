@@ -1,5 +1,9 @@
 //! Solution to the Missionaries and Cannibals Problem
 use std::fmt;
+use std::collections::{VecDeque, HashSet};
+use std::cmp::Ordering;
+use std::rc::Rc;
+
 
 const MAX_NUM: usize = 3;
 
@@ -10,6 +14,43 @@ struct MCState {
     em: usize,
     ec: usize,
     boat: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Node<T>{
+    state: T,
+    parent: Option<Rc<Node<T>>>,
+    cost: i32,
+    heuristic: i32,
+}
+
+impl<T: PartialEq + Copy> Node<T> {
+    fn to_path(&self) -> Vec<T> {
+        let mut path: Vec<T> = vec![self.state];
+        let mut node = self;
+        while node.parent != None {
+            node = &node.parent.as_ref().unwrap();
+            path.push(node.state);
+        }
+        path.reverse();
+        path
+    }
+}
+
+impl<T: PartialEq + Eq> PartialOrd for Node<T> {
+    fn partial_cmp(&self, other: &Node<T>) -> Option<Ordering> {
+        let a = self.cost + self.heuristic;
+        let b = other.cost + other.heuristic;
+        a.partial_cmp(&b)
+    }
+}
+
+impl<T: PartialEq + Eq> Ord for Node<T> {
+    fn cmp(&self, other: &Node<T>) -> Ordering {
+        let a = self.cost + self.heuristic;
+        let b = other.cost + other.heuristic;
+        a.cmp(&b)
+    }
 }
 
 impl MCState {
@@ -68,6 +109,41 @@ impl MCState {
         }
         sucs.iter().filter(|x| x.is_legal()).collect()
     }
+    fn goal(&self) -> bool {
+        self.is_legal() && self.em == MAX_NUM && self.ec == MAX_NUM
+    }
+    /// Breadth-first search
+    fn bfs(&mut self) -> Option<Node<MCState>> {
+        let initial = self.clone();
+        let mut frontier: VecDeque<Node<MCState>> = VecDeque::new();
+        frontier.push_back(Node {
+            state: initial,
+            parent: None,
+            cost: 0,
+            heuristic: 0,
+        });
+        let mut seen: HashSet<MCState> = HashSet::new(); // TODO: replace with Array2?
+        while !frontier.is_empty() {
+            let cur_node = Rc::new(frontier.pop_front().unwrap());
+            //let cur_state = cur_node.state;
+            if self.goal() {
+                return Some(Rc::try_unwrap(cur_node).unwrap());
+            }
+            for child in self.successors() {
+                if seen.contains(&child) {
+                    continue;
+                }
+                seen.insert(child);
+                frontier.push_back(Node {
+                    state: child,
+                    parent: Some(cur_node.clone()),
+                    cost: 0,
+                    heuristic: 0,
+                })
+            }
+        }
+        None
+    }
 }
 
 impl fmt::Display for MCState {
@@ -115,45 +191,14 @@ fn display_solution(path: Vec<MCState>) {
     }
 }
 
-/// Breadth-first search
-// fn bfs(&self, initial: MazeLocation) -> Option<Node<MazeLocation>> {
-//     let mut frontier: VecDeque<Node<MazeLocation>> = VecDeque::new();
-//     frontier.push_back(Node {
-//         state: initial,
-//         parent: None,
-//         cost: 0,
-//         heuristic: 0,
-//     });
-//     let mut seen: HashSet<MazeLocation> = HashSet::new(); // TODO: replace with Array2?
-//     while !frontier.is_empty() {
-//         let cur_node = Rc::new(frontier.pop_front().unwrap());
-//         let cur_state = cur_node.state;
-//         if self.goal(cur_state) {
-//             return Some(Rc::try_unwrap(cur_node).unwrap());
-//         }
-//         for child in self.successors(cur_state) {
-//             if seen.contains(&child) {
-//                 continue;
-//             }
-//             seen.insert(child);
-//             frontier.push_back(Node {
-//                 state: child,
-//                 parent: Some(cur_node.clone()),
-//                 cost: 0,
-//                 heuristic: 0,
-//             })
-//         }
-//     }
-//     None
-// }
+
 
 fn main() {
     let start = MCState::new(MAX_NUM, MAX_NUM, true);
-    let solution = bfs(start, MCState.goal_test, MCState.successors);
+    let solution = start.bfs();
     if solution == None {
         println!("No solutions found.");
     } else {
-        let path = node_to_path(solution);
-        display_solution(path);
+        display_solution(solution.unwrap());
     }
 }
