@@ -5,14 +5,14 @@ use std::cmp::Ordering;
 use std::rc::Rc;
 
 
-const MAX_NUM: usize = 3;
+const MAX_NUM: i32 = 3;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 struct MCState {
-    wm: usize,
-    wc: usize,
-    em: usize,
-    ec: usize,
+    wm: i32,
+    wc: i32,
+    em: i32,
+    ec: i32,
     boat: bool,
 }
 
@@ -54,11 +54,11 @@ impl<T: PartialEq + Eq> Ord for Node<T> {
 }
 
 impl MCState {
-    fn new(wm: usize, wc: usize, boat: bool) -> MCState {
+    fn new(wm: i32, wc: i32, boat: bool) -> MCState {
         MCState {
             wm,
             wc,
-            em: MAX_NUM - wc,
+            em: MAX_NUM - wm,
             ec: MAX_NUM - wc,
             boat,
         }
@@ -140,7 +140,7 @@ impl MCState {
                     parent: Some(cur_node.clone()),
                     cost: 0,
                     heuristic: 0,
-                })
+                });
             }
         }
         None
