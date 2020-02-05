@@ -17,7 +17,7 @@ struct MCState {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct Node<T>{
+struct Node<T> {
     state: T,
     parent: Option<Rc<Node<T>>>,
     cost: i32,
@@ -73,7 +73,7 @@ impl MCState {
         return true;
     }
     fn successors(&self) -> Vec<MCState> {
-        let sucs: Vec<MCState> = Vec::new();
+        let mut sucs: Vec<MCState> = Vec::new();
         if self.boat {
             if self.wm > 1 {
                 sucs.push(MCState::new(self.wm - 2, self.wc, !self.boat));
@@ -107,7 +107,8 @@ impl MCState {
                 sucs.push(MCState::new(self.wm + 1, self.wc + 1, !self.boat));
             }
         }
-        sucs.iter().filter(|x| x.is_legal()).collect()
+        let sucs_filtered: Vec<MCState> = sucs.into_iter().filter(|&x| x.is_legal()).collect();
+        sucs_filtered
     }
     fn goal(&self) -> bool {
         self.is_legal() && self.em == MAX_NUM && self.ec == MAX_NUM
@@ -150,18 +151,10 @@ impl fmt::Display for MCState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "On the west bank there are {} missionaries and {} cannibals.",
-            self.wm, self.wc
-        );
-        write!(
-            f,
-            "On the east bank there are {} missionaries and {} cannibals.",
-            self.em, self.ec
-        );
-        write!(
-            f,
-            "The boat is on the {} bank.",
-            if self.boat { "west" } else { "east" }
+            "On the west bank there are {} missionaries and {} cannibals.\n\
+             On the east bank there are {} missionaries and {} cannibals.\n\
+             The boat is on the {} bank.",
+            self.wm, self.wc,self.em, self.ec, if self.boat { "west" } else { "east" }
         )
     }
 }
@@ -194,11 +187,11 @@ fn display_solution(path: Vec<MCState>) {
 
 
 fn main() {
-    let start = MCState::new(MAX_NUM, MAX_NUM, true);
+    let mut start = MCState::new(MAX_NUM, MAX_NUM, true);
     let solution = start.bfs();
     if solution == None {
         println!("No solutions found.");
     } else {
-        display_solution(solution.unwrap());
+        display_solution(solution.unwrap().to_path());
     }
 }
