@@ -3,54 +3,18 @@ use std::fmt;
 use std::collections::{VecDeque, HashSet};
 use std::cmp::Ordering;
 use std::rc::Rc;
+use pathfinding::prelude::bfs;
 
 
 const MAX_NUM: i32 = 3;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct MCState {
     wm: i32,
     wc: i32,
     em: i32,
     ec: i32,
     boat: bool,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-struct Node<T> {
-    state: T,
-    parent: Option<Rc<Node<T>>>,
-    cost: i32,
-    heuristic: i32,
-}
-
-impl<T: PartialEq + Copy> Node<T> {
-    fn to_path(&self) -> Vec<T> {
-        let mut path: Vec<T> = vec![self.state];
-        let mut node = self;
-        while node.parent != None {
-            node = &node.parent.as_ref().unwrap();
-            path.push(node.state);
-        }
-        path.reverse();
-        path
-    }
-}
-
-impl<T: PartialEq + Eq> PartialOrd for Node<T> {
-    fn partial_cmp(&self, other: &Node<T>) -> Option<Ordering> {
-        let a = self.cost + self.heuristic;
-        let b = other.cost + other.heuristic;
-        a.partial_cmp(&b)
-    }
-}
-
-impl<T: PartialEq + Eq> Ord for Node<T> {
-    fn cmp(&self, other: &Node<T>) -> Ordering {
-        let a = self.cost + self.heuristic;
-        let b = other.cost + other.heuristic;
-        a.cmp(&b)
-    }
 }
 
 impl MCState {
@@ -113,38 +77,6 @@ impl MCState {
     fn goal(&self) -> bool {
         self.is_legal() && self.em == MAX_NUM && self.ec == MAX_NUM
     }
-    /// Breadth-first search
-    fn bfs(&mut self) -> Option<Node<MCState>> {
-        let initial = self.clone();
-        let mut frontier: VecDeque<Node<MCState>> = VecDeque::new();
-        frontier.push_back(Node {
-            state: initial,
-            parent: None,
-            cost: 0,
-            heuristic: 0,
-        });
-        let mut seen: HashSet<MCState> = HashSet::new(); // TODO: replace with Array2?
-        while !frontier.is_empty() {
-            let cur_node = Rc::new(frontier.pop_front().unwrap());
-            let cur_state = cur_node.state;
-            if cur_state.goal() {
-                return Some(Rc::try_unwrap(cur_node).unwrap());
-            }
-            for child in cur_state.successors() {
-                if seen.contains(&child) {
-                    continue;
-                }
-                seen.insert(child);
-                frontier.push_back(Node {
-                    state: child,
-                    parent: Some(cur_node.clone()),
-                    cost: 0,
-                    heuristic: 0,
-                });
-            }
-        }
-        None
-    }
 }
 
 impl fmt::Display for MCState {
@@ -188,10 +120,12 @@ fn display_solution(path: Vec<MCState>) {
 
 fn main() {
     let mut start = MCState::new(MAX_NUM, MAX_NUM, true);
-    let solution = start.bfs();
+    static GOAL: MCState = MCState::new(0, 0, false);
+    let result = bfs(&start, |p| p.successors(), |p| *p == GOAL);
     if solution == None {
         println!("No solutions found.");
     } else {
-        display_solution(solution.unwrap().to_path());
+        println!("{:?}",result);
+        //display_solution(solution.unwrap().to_path());
     }
 }
