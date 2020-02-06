@@ -1,7 +1,6 @@
 //! Solution to the Missionaries and Cannibals Problem
-use std::fmt;
 use pathfinding::prelude::bfs;
-
+use std::fmt;
 
 const MAX_NUM: i32 = 3;
 
@@ -79,7 +78,11 @@ impl fmt::Display for MCState {
             "On the west bank there are {} missionaries and {} cannibals.\n\
              On the east bank there are {} missionaries and {} cannibals.\n\
              The boat is on the {} bank.",
-            self.wm, self.wc,self.em, self.ec, if self.boat { "west" } else { "east" }
+            self.wm,
+            self.wc,
+            self.em,
+            self.ec,
+            if self.boat { "west" } else { "east" }
         )
     }
 }
@@ -109,16 +112,20 @@ fn display_solution(path: Vec<MCState>) {
     }
 }
 
-
-
 fn main() {
     let start = MCState::new(MAX_NUM, MAX_NUM, true);
-    static GOAL: MCState = MCState { wm: 0, wc: 0, em: MAX_NUM, ec: MAX_NUM, boat: false };
+    static GOAL: MCState = MCState {
+        wm: 0,
+        wc: 0,
+        em: MAX_NUM,
+        ec: MAX_NUM,
+        boat: false,
+    };
     let result = bfs(&start, |p| p.successors(), |p| *p == GOAL);
     if result == None {
         println!("No solutions found.");
     } else {
-        println!("{:?}",result);
+        println!("{:?}", result);
         display_solution(result.unwrap());
     }
 }

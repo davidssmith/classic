@@ -1,9 +1,8 @@
 //! Solution to the Missionaries and Cannibals Problem
-use std::fmt;
-use std::collections::{VecDeque, HashSet};
 use std::cmp::Ordering;
+use std::collections::{HashSet, VecDeque};
+use std::fmt;
 use std::rc::Rc;
-
 
 const MAX_NUM: i32 = 3;
 
@@ -154,7 +153,11 @@ impl fmt::Display for MCState {
             "On the west bank there are {} missionaries and {} cannibals.\n\
              On the east bank there are {} missionaries and {} cannibals.\n\
              The boat is on the {} bank.",
-            self.wm, self.wc,self.em, self.ec, if self.boat { "west" } else { "east" }
+            self.wm,
+            self.wc,
+            self.em,
+            self.ec,
+            if self.boat { "west" } else { "east" }
         )
     }
 }
@@ -183,8 +186,6 @@ fn display_solution(path: Vec<MCState>) {
         old_state = *current_state;
     }
 }
-
-
 
 fn main() {
     let mut start = MCState::new(MAX_NUM, MAX_NUM, true);
