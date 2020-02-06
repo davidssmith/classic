@@ -1,14 +1,11 @@
 //! Solution to the Missionaries and Cannibals Problem
 use std::fmt;
-use std::collections::{VecDeque, HashSet};
-use std::cmp::Ordering;
-use std::rc::Rc;
 use pathfinding::prelude::bfs;
 
 
 const MAX_NUM: i32 = 3;
 
-#[derive(Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 struct MCState {
     wm: i32,
     wc: i32,
@@ -71,11 +68,7 @@ impl MCState {
                 sucs.push(MCState::new(self.wm + 1, self.wc + 1, !self.boat));
             }
         }
-        let sucs_filtered: Vec<MCState> = sucs.into_iter().filter(|&x| x.is_legal()).collect();
-        sucs_filtered
-    }
-    fn goal(&self) -> bool {
-        self.is_legal() && self.em == MAX_NUM && self.ec == MAX_NUM
+        sucs.into_iter().filter(|x| x.is_legal()).collect()
     }
 }
 
@@ -119,13 +112,13 @@ fn display_solution(path: Vec<MCState>) {
 
 
 fn main() {
-    let mut start = MCState::new(MAX_NUM, MAX_NUM, true);
-    static GOAL: MCState = MCState::new(0, 0, false);
+    let start = MCState::new(MAX_NUM, MAX_NUM, true);
+    static GOAL: MCState = MCState { wm: 0, wc: 0, em: MAX_NUM, ec: MAX_NUM, boat: false };
     let result = bfs(&start, |p| p.successors(), |p| *p == GOAL);
-    if solution == None {
+    if result == None {
         println!("No solutions found.");
     } else {
         println!("{:?}",result);
-        //display_solution(solution.unwrap().to_path());
+        display_solution(result.unwrap());
     }
 }
