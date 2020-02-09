@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::hash::Hash;
+use fnv::FnvHashMap;
 
 extern crate classic;
 use classic::csp::{CSP, Constraint};
@@ -29,7 +30,7 @@ enum Color {
 struct MapColorConstraint(Place, Place);
 
 impl Constraint<Place, Color> for MapColorConstraint {
-    fn satisfied(&self, assignment: &HashMap<Place, Color>) -> bool {
+    fn satisfied(&self, assignment: &FnvHashMap<Place, Color>) -> bool {
         if !assignment.contains_key(&self.0) || !assignment.contains_key(&self.1) {
             return true;
         }
@@ -50,7 +51,7 @@ fn main() {
         Place::V,
         Place::T,
     ];
-    let mut domains: HashMap<Place, Vec<Color>> = HashMap::new();
+    let mut domains: FnvHashMap<Place, Vec<Color>> = FnvHashMap::default();
     for &variable in variables.iter() {
         domains.insert(variable, vec![Color::Red, Color::Blue, Color::Green]);
     }
@@ -67,7 +68,7 @@ fn main() {
     csp.add_constraint(MapColorConstraint(Place::V, Place::SA));
     csp.add_constraint(MapColorConstraint(Place::V, Place::NSW));
     csp.add_constraint(MapColorConstraint(Place::V, Place::T));
-    let mut initial_guess: HashMap<Place, Color> = HashMap::new();
+    let mut initial_guess: FnvHashMap<Place, Color> = FnvHashMap::default();
     initial_guess.insert(Place::WA, Color::Red);
     let solution = csp.backtracking_search(initial_guess);
     if solution == None {

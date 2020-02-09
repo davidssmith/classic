@@ -1,6 +1,6 @@
 //! n-queens solver
 
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::env;
 use fnv::FnvHashMap;
 
@@ -12,7 +12,7 @@ struct QueensConstraint(Vec<i8>);
 // TODO: use single u64 with bitmask?
 
 impl Constraint<i8, i8> for QueensConstraint {
-    fn satisfied(&self, assignment: &HashMap<i8, i8>) -> bool {
+    fn satisfied(&self, assignment: &FnvHashMap<i8, i8>) -> bool {
         // q1c = queen 1 column, q1r = queen 1 row
         for (q1c, q1r) in assignment.iter() {
             for q2c in (q1c + 1)..(self.0.len() as i8 + 1) {
@@ -41,7 +41,7 @@ fn main() {
     };
     // set up N-queens problem
     let vars: Vec<i8> = (0..n).collect();
-    let mut domains: HashMap<i8, Vec<i8>> = HashMap::new();
+    let mut domains: FnvHashMap<i8, Vec<i8>> = FnvHashMap::default();
     for v in vars.iter() {
         domains.insert(*v, vars.clone());
     }
@@ -50,8 +50,8 @@ fn main() {
     // add constraints
     csp.add_constraint(QueensConstraint(vars));
     // solve it
-    let mut initial_guess: HashMap<i8, i8> = HashMap::new();
-    initial_guess.insert(1, 2);
+    let mut initial_guess: FnvHashMap<i8, i8> = FnvHashMap::default();
+    initial_guess.insert(1, 3);
     let solution = csp.backtracking_search(initial_guess);
     if solution == None {
         println!("No solution found!");

@@ -1,11 +1,12 @@
 //! Constraint Satisfaction Problems
 //! Template types plus backtracking solver
 
-use std::collections::HashMap;
+//use std::collections::HashMap;
 use std::hash::Hash;
+use fnv::FnvHashMap;
 
 pub trait Constraint<V: Eq + Hash, D> {
-    fn satisfied(&self, assignment: &HashMap<V, D>) -> bool;
+    fn satisfied(&self, assignment: &FnvHashMap<V, D>) -> bool;
     fn variables(&self) -> Vec<V>;
 }
 
@@ -17,13 +18,13 @@ where
     C: Clone + Constraint<V, D>,
 {
     variables: Vec<V>,
-    domains: HashMap<V, Vec<D>>,
-    constraints: HashMap<V, Vec<C>>,
+    domains: FnvHashMap<V, Vec<D>>,
+    constraints: FnvHashMap<V, Vec<C>>,
 }
 
 impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> CSP<V, D, C> {
-    pub fn new(variables: Vec<V>, domains: HashMap<V, Vec<D>>) -> CSP<V, D, C> {
-        let mut constraints: HashMap<V, Vec<C>> = HashMap::new();
+    pub fn new(variables: Vec<V>, domains: FnvHashMap<V, Vec<D>>) -> CSP<V, D, C> {
+        let mut constraints: FnvHashMap<V, Vec<C>> = FnvHashMap::default();
         for variable in &variables {
             constraints.insert(*variable, Vec::new());
             if !domains.contains_key(&variable) {
@@ -49,7 +50,7 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
             }
         }
     }
-    fn consistent(&self, variable: V, assignment: &HashMap<V, D>) -> bool {
+    fn consistent(&self, variable: V, assignment: &FnvHashMap<V, D>) -> bool {
         let constraints = self.constraints.get(&variable).unwrap();
         for c in constraints {
             if !c.satisfied(assignment) {
@@ -60,7 +61,7 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
         //.iter()
         //.any(|&c| !*c.satisfied(*assignment))
     }
-    pub fn backtracking_search(&self, assignment: HashMap<V, D>) -> Option<HashMap<V, D>> {
+    pub fn backtracking_search(&self, assignment: FnvHashMap<V, D>) -> Option<FnvHashMap<V, D>> {
         if assignment.len() == self.variables.len() {
             return Some(assignment);
         }
