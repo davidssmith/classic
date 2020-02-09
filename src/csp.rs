@@ -1,4 +1,6 @@
-//use std::cmp::Eq;
+//! Constraint Satisfaction Problems
+//! Template types plus backtracking solver
+
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -20,7 +22,7 @@ where
 }
 
 impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> CSP<V, D, C> {
-    fn new(variables: Vec<V>, domains: HashMap<V, Vec<D>>) -> CSP<V, D, C> {
+    pub fn new(variables: Vec<V>, domains: HashMap<V, Vec<D>>) -> CSP<V, D, C> {
         let mut constraints: HashMap<V, Vec<C>> = HashMap::new();
         for variable in &variables {
             constraints.insert(*variable, Vec::new());
@@ -34,7 +36,7 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
             constraints,
         }
     }
-    fn add_constraint(&mut self, constraint: C) {
+    pub fn add_constraint(&mut self, constraint: C) {
         let vars = constraint.variables();
         for variable in vars {
             if !self.variables.contains(&variable) {
@@ -58,7 +60,7 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
             //.iter()
             //.any(|&c| !*c.satisfied(*assignment))
     }
-    fn backtracking_search(&self, assignment: HashMap<V, D>) -> Option<HashMap<V, D>> {
+    pub fn backtracking_search(&self, assignment: HashMap<V, D>) -> Option<HashMap<V, D>> {
         if assignment.len() == self.variables.len() {
             return Some(assignment);
         }
@@ -79,5 +81,16 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
             }
         }
         None
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ex1() {
+        ()
     }
 }
