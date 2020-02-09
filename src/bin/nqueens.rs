@@ -2,9 +2,10 @@
 
 use std::hash::Hash;
 use std::collections::HashMap;
+use std::env;
+
 extern crate classic;
 use classic::csp::{CSP, Constraint};
-
 
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct QueensConstraint {
@@ -34,14 +35,24 @@ impl Constraint<i32,i32> for QueensConstraint {
 }
 
 fn main() {
-    let cols: Vec<i32> = vec![1, 2, 3, 4, 5, 6, 7 ,8];
-    let mut rows: HashMap<i32, Vec<i32>> = HashMap::new();
-    for c in cols.iter() {
-        rows.insert(*c, vec![1, 2, 3, 4, 5, 6, 7, 8]);
+    let mut args = env::args();
+    let n: i32 = match args.nth(1) {
+        Some(n) => n.parse::<i32>().unwrap(),
+        None => 8,
+    };
+    // set up N-queens problem
+    let vars: Vec<i32> = (0..n).collect();
+    let mut domains: HashMap<i32, Vec<i32>> = HashMap::new();
+    for v in vars.iter() {
+        domains.insert(*v, vars.clone());
     }
-    let csp: CSP<i32,i32,QueensConstraint> = CSP::new(cols, rows);
+    let mut csp: CSP<i32,i32,QueensConstraint> = CSP::new(vars.clone(), domains);
+
+    // add constraints
+    csp.add_constraint(QueensConstraint { cols: vars });
+    // solve it
     let mut initial_guess: HashMap<i32, i32> = HashMap::new();
-    initial_guess.insert(1, 1);
+    initial_guess.insert(1, 2);
     let solution = csp.backtracking_search(initial_guess);
     if solution == None {
         println!("No solution found!");
