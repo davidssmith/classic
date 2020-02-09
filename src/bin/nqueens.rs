@@ -1,19 +1,19 @@
 //! n-queens solver
 
-use std::hash::Hash;
 use std::collections::HashMap;
 use std::env;
+use std::hash::Hash;
 
 extern crate classic;
-use classic::csp::{CSP, Constraint};
+use classic::csp::{Constraint, CSP};
 
 #[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct QueensConstraint {
     cols: Vec<i32>,
 }
 
-impl Constraint<i32,i32> for QueensConstraint {
-    fn satisfied(&self, assignment: &HashMap<i32,i32>) -> bool {
+impl Constraint<i32, i32> for QueensConstraint {
+    fn satisfied(&self, assignment: &HashMap<i32, i32>) -> bool {
         // q1c = queen 1 column, q1r = queen 1 row
         for (q1c, q1r) in assignment.iter() {
             for q2c in (q1c + 1)..(self.cols.len() as i32 + 1) {
@@ -46,7 +46,7 @@ fn main() {
     for v in vars.iter() {
         domains.insert(*v, vars.clone());
     }
-    let mut csp: CSP<i32,i32,QueensConstraint> = CSP::new(vars.clone(), domains);
+    let mut csp: CSP<i32, i32, QueensConstraint> = CSP::new(vars.clone(), domains);
 
     // add constraints
     csp.add_constraint(QueensConstraint { cols: vars });

@@ -57,8 +57,8 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
             }
         }
         true
-            //.iter()
-            //.any(|&c| !*c.satisfied(*assignment))
+        //.iter()
+        //.any(|&c| !*c.satisfied(*assignment))
     }
     pub fn backtracking_search(&self, assignment: HashMap<V, D>) -> Option<HashMap<V, D>> {
         if assignment.len() == self.variables.len() {
@@ -83,7 +83,6 @@ impl<V: Clone + Copy + Eq + Hash, D: Clone + Copy, C: Clone + Constraint<V, D>> 
         None
     }
 }
-
 
 #[cfg(test)]
 mod tests {
