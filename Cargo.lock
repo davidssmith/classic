@@ -26,7 +26,6 @@ name = "classic"
 version = "0.1.0"
 dependencies = [
  "fnv",
- "itertools 0.8.2",
  "ndarray",
  "pathfinding",
  "rand",

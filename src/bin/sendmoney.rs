@@ -1,8 +1,8 @@
 //! n-queens solver
 
 //use std::env;
+use std::iter::FromIterator;
 use fnv::{FnvHashMap, FnvHashSet};
-use itertools::Itertools;
 
 extern crate classic;
 use classic::csp::{Constraint, CSP};
@@ -13,7 +13,8 @@ struct SendMoneyConstraint(Vec<char>);
 impl Constraint<char, i8> for SendMoneyConstraint {
     fn satisfied(&self, assignment: &FnvHashMap<char, i8>) -> bool {
         // if there are duplicate values then it's not a solution
-        if assignment.values().unique().count() < assignment.len() {
+        let s = FnvHashSet::from_iter(assignment.values());
+        if s.len() < assignment.len() {
             return false;
         }
 
@@ -40,11 +41,6 @@ impl Constraint<char, i8> for SendMoneyConstraint {
 }
 
 fn main() {
-    // let mut args = env::args();
-    // let n: i8 = match args.nth(1) {
-    //     Some(n) => n.parse::<i8>().unwrap(),
-    //     None => 8,
-    // };
     // set up problem
     let vars: Vec<char> = vec!['S','E','N','D','M','O','R','Y'];
     let mut domains: FnvHashMap<char, Vec<i8>> = FnvHashMap::default();
@@ -52,7 +48,6 @@ fn main() {
         domains.insert(*v, vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
     }
     let mut csp: CSP<char, i8, SendMoneyConstraint> = CSP::new(vars.clone(), domains);
-
     // add constraints
     csp.add_constraint(SendMoneyConstraint(vars));
     // solve it
