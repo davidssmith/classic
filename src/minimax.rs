@@ -16,21 +16,21 @@ fn f32_min(a: f32, b: f32) -> f32 {
 }
 
 // Find the best possible outcome for original player
-fn minimax<B: Board<P> + ?Sized, P: Piece>(
-    board: Box<B>,
+fn minimax<B: Board<P>, P: Piece>(
+    board: B,
     maximizing: bool,
-    original_player: &P,
+    original_player: P,
     max_depth: i32,
 ) -> f32 {
     // Base case – terminal position or maximum depth reached
     if board.is_win() || board.is_draw() || max_depth == 0 {
-        return board.evaluate(&original_player);
+        return board.evaluate(original_player);
     }
     // Recursive case - maximize your gains or minimize the opponent's gains
     if maximizing {
         let mut best_eval = f32::NEG_INFINITY; // arbitrarily low starting point
         for m in board.legal_moves() {
-            let result = minimax(board.make_move(m), false, &original_player, max_depth - 1);
+            let result = minimax(board.make_move(m), false, original_player, max_depth - 1);
             best_eval = f32_max(result, best_eval); // we want the move with the highest evaluation
         }
         return best_eval;
@@ -38,17 +38,17 @@ fn minimax<B: Board<P> + ?Sized, P: Piece>(
         // minimizing
         let mut worst_eval = f32::INFINITY;
         for m in board.legal_moves() {
-            let result = minimax(board.make_move(m), true, &original_player, max_depth - 1);
+            let result = minimax(board.make_move(m), true, original_player, max_depth - 1);
             worst_eval = f32_min(result, worst_eval); // we want the move with the lowest evaluation
         }
         return worst_eval;
     }
 }
 
-fn alphabeta<B: Board<P> + ?Sized, P: Piece>(
-    board: Box<B>,
+fn alphabeta<B: Board<P>, P: Piece>(
+    board: B,
     maximizing: bool,
-    original_player: &P,
+    original_player: P,
     max_depth: i32,
     alpha: f32,
     beta: f32,
@@ -81,7 +81,7 @@ fn alphabeta<B: Board<P> + ?Sized, P: Piece>(
             let result = alphabeta(
                 board.make_move(m),
                 true,
-                &original_player,
+                original_player,
                 max_depth - 1,
                 alpha,
                 beta,
@@ -97,7 +97,7 @@ fn alphabeta<B: Board<P> + ?Sized, P: Piece>(
 
 // Find the best possible move in the current position
 // looking up to max_depth ahead
-fn find_best_move<B: Board<P> + ?Sized, P: Piece>(board: Box<B>, max_depth: i32) -> Move {
+pub fn find_best_move<B: Board<P>, P: Piece>(board: B, max_depth: i32) -> Move {
     // default: max_depth=8
     let mut best_eval = f32::NEG_INFINITY;
     let mut best_move: Move = -1 as Move;
@@ -105,7 +105,7 @@ fn find_best_move<B: Board<P> + ?Sized, P: Piece>(board: Box<B>, max_depth: i32)
         let result = alphabeta(
             board.make_move(m),
             false,
-            &board.turn(),
+            board.turn(),
             max_depth,
             f32::NEG_INFINITY,
             f32::INFINITY,
