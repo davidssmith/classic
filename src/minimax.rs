@@ -1,10 +1,10 @@
 use crate::board::{Board, Move, Piece};
 
 fn f32_max(a: f32, b: f32) -> f32 {
-    if a > b {
-        a
-    } else {
+    if a < b {
         b
+    } else {
+        a
     }
 }
 fn f32_min(a: f32, b: f32) -> f32 {
@@ -100,16 +100,19 @@ fn alphabeta<B: Board<P>, P: Piece>(
 pub fn find_best_move<B: Board<P>, P: Piece>(board: B, max_depth: i32) -> Move {
     // default: max_depth=8
     let mut best_eval = f32::NEG_INFINITY;
-    let mut best_move: Move = -1 as Move;
+    let mut best_move: Move = -1;
+    let alpha = f32::NEG_INFINITY;
+    let beta = f32::INFINITY;
     for &m in board.legal_moves().iter() {
         let result = alphabeta(
             board.make_move(m),
             false,
             board.turn(),
             max_depth,
-            f32::NEG_INFINITY,
-            f32::INFINITY,
+            alpha,
+            beta,
         );
+        eprintln!("result: {} best_eval: {} depth: {}", result, best_eval, max_depth);
         if result > best_eval {
             best_eval = result;
             best_move = m;

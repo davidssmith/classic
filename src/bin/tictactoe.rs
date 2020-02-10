@@ -131,11 +131,10 @@ mod tests {
     fn test_easy_position() {
         // win in 1 move
         let to_win_easy_position = vec![TTTPiece::X, TTTPiece::O, TTTPiece::X,
-                                                TTTPiece::X, TTTPiece::E, TTTPiece::O,
-                                                TTTPiece::E, TTTPiece::E, TTTPiece::O];
+                                        TTTPiece::X, TTTPiece::E, TTTPiece::O,
+                                        TTTPiece::E, TTTPiece::E, TTTPiece::O];
         let test_board1: TTTBoard = TTTBoard { position: to_win_easy_position, turn: TTTPiece::X };
-        let depth = 8;
-        let answer1 = find_best_move(test_board1, depth);
+        let answer1 = find_best_move(test_board1, 2);
         assert_eq!(answer1, 6);
     }
 
@@ -143,11 +142,10 @@ mod tests {
     fn test_block_position() {
         // must block O's win
         let to_block_position = vec![TTTPiece::X, TTTPiece::E, TTTPiece::E,
-                                             TTTPiece::E, TTTPiece::E, TTTPiece::O,
-                                             TTTPiece::E, TTTPiece::X, TTTPiece::O];
+                                     TTTPiece::E, TTTPiece::E, TTTPiece::O,
+                                     TTTPiece::E, TTTPiece::X, TTTPiece::O];
         let test_board2 = TTTBoard { position: to_block_position, turn: TTTPiece::X };
-        let depth = 8;
-        let answer2 = find_best_move(test_board2, depth);
+        let answer2 = find_best_move(test_board2, 2);
         assert_eq!(answer2, 2);
     }
 
@@ -155,11 +153,10 @@ mod tests {
     fn test_hard_position() {
         // find the best move to win 2 moves
         let to_win_hard_position = vec![TTTPiece::X, TTTPiece::E, TTTPiece::E,
-                                                TTTPiece::E, TTTPiece::E, TTTPiece::O,
-                                                TTTPiece::O, TTTPiece::X, TTTPiece::E];
+                                        TTTPiece::E, TTTPiece::E, TTTPiece::O,
+                                        TTTPiece::O, TTTPiece::X, TTTPiece::E];
         let test_board3: TTTBoard = TTTBoard { position: to_win_hard_position, turn: TTTPiece::X };
-        let depth = 8;
-        let answer3 = find_best_move(test_board3, depth);
+        let answer3 = find_best_move(test_board3, 3);
         assert_eq!(answer3, 1);
     }
 }
