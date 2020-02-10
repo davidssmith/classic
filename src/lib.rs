@@ -6,3 +6,4 @@
 
 pub mod csp;
 pub mod board;
+pub mod minimax;

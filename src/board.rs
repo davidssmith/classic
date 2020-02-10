@@ -1,17 +1,17 @@
 
-type Move = i32;
+pub type Move = i32;
 
-trait Piece {
-    fn opposite(&self) -> Piece;
+pub trait Piece {
+    fn opposite(&self) -> dyn Piece;
 }
 
-trait Board<P: Piece> {
+pub trait Board<P: Piece> {
     fn turn(&self) -> P;
-    fn move(&self, location: Move) -> Board;
+    fn make_move(&self, location: Move) -> dyn Board<P>;
     fn legal_moves(&self) -> Vec<Move>;
     fn is_win(&self) -> bool;
     fn is_draw(&self) -> bool {
         !self.is_win() && self.legal_moves().len() == 0
     }
-    fn evaluate(&self, player: P) - f32;
+    fn evaluate(&self, player: P) -> f32;
 }
