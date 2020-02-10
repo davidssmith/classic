@@ -1,60 +1,80 @@
 
+use std::cmp::max;
+use crate::board::{Piece, Board, Move};
+use std::cmp::min;
 
-use board::{Piece, Board, Move};
-
-
-// Find the best possible outcome for original player
-fn minimax(board: Board, maximizing: bool, original_player: Piece, max_depth: int = 8) -> f32 {
-    // Base case – terminal position or maximum depth reached
-    if board.is_win or board.is_draw or max_depth == 0:
-        return board.evaluate(original_player)
-
-    // Recursive case - maximize your gains or minimize the opponent's gains
-    if maximizing:
-        best_eval: float = float("-inf") # arbitrarily low starting point
-        for move in board.legal_moves:
-            result: float = minimax(board.move(move), False, original_player, max_depth - 1)
-            best_eval = max(result, best_eval) # we want the move with the highest evaluation
-        return best_eval
-    else: # minimizing
-        worst_eval: float = float("inf")
-        for move in board.legal_moves:
-            result = minimax(board.move(move), True, original_player, max_depth - 1)
-            worst_eval = min(result, worst_eval) # we want the move with the lowest evaluation
-        return worst_eval
+fn f32_max(a: f32, b: f32) -> f32 {
+    if a > b { a } else { b }
+}
+fn f32_min(a: f32, b: f32) -> f32 {
+    if a < b { a } else { b }
 }
 
-fn alphabeta(board: Board, maximizing: bool, original_player: Piece, max_depth: int = 8, alpha: float = float("-inf"), beta: float = float("inf")) -> f32 {
+// Find the best possible outcome for original player
+fn minimax(board: dyn Board, maximizing: bool, original_player: dyn Piece, max_depth: i32) -> f32 {
     // Base case – terminal position or maximum depth reached
-    if board.is_win or board.is_draw or max_depth == 0:
-        return board.evaluate(original_player)
+    if board.is_win() || board.is_draw() || max_depth == 0 {
+        return board.evaluate(original_player);
+    }
+    // Recursive case - maximize your gains or minimize the opponent's gains
+    if maximizing {
+        let mut best_eval = f32::NEG_INFINITY; // arbitrarily low starting point
+        for m in board.legal_moves() {
+            let result = minimax(board.make_move(m), false, original_player, max_depth - 1);
+            best_eval = f32_max(result, best_eval); // we want the move with the highest evaluation
+        }
+        return best_eval;
+    } else { // minimizing
+        let mut worst_eval = f32::INFINITY;
+        for m in board.legal_moves() {
+            let result = minimax(board.make_move(m), true, original_player, max_depth - 1);
+            worst_eval = f32_min(result, worst_eval); // we want the move with the lowest evaluation
+        }
+        return worst_eval;
+    }
+}
 
-    # Recursive case - maximize your gains or minimize the opponent's gains
-    if maximizing:
-        for move in board.legal_moves:
-            result: float = alphabeta(board.move(move), False, original_player, max_depth - 1, alpha, beta)
-            alpha = max(result, alpha)
-            if beta <= alpha:
-                break
-        return alpha
-    else:  # minimizing
-        for move in board.legal_moves:
-            result = alphabeta(board.move(move), True, original_player, max_depth - 1, alpha, beta)
-            beta = min(result, beta)
-            if beta <= alpha:
-                break
-        return beta
+fn alphabeta(board: dyn Board, maximizing: bool, original_player: dyn Piece, max_depth: i32,
+        alpha: f32, beta: f32) -> f32 {
+    // defaultS: max_depth=8, alpha=-inf, beta=inf
+    // Base case – terminal position or maximum depth reached
+    if board.is_win() || board.is_draw() || max_depth == 0 {
+        return board.evaluate(original_player);
+    }
+    // Recursive case - maximize your gains or minimize the opponent's gains
+    if maximizing {
+        for m in board.legal_moves() {
+            let result = alphabeta(board.make_move(m), false, original_player,
+                max_depth - 1, alpha, beta);
+            let alpha = f32_max(result, alpha);
+            if beta <= alpha {
+                break;
+            }
+        }
+        return alpha;
+    } else {  // minimizing
+        for m in board.legal_moves() {
+            let result = alphabeta(board.make_move(m), true, original_player, max_depth - 1, alpha, beta);
+            let beta = f32_min(result, beta);
+            if beta <= alpha {
+                break;
+            }
+        }
+        return beta;
+    }
 }
 
 // Find the best possible move in the current position
 // looking up to max_depth ahead
-fn find_best_move(board: Board, max_depth: int = 8) -> Move {
-    best_eval: float = float("-inf")
-    best_move: Move = Move(-1)
-    for move in board.legal_moves:
-        result: float = alphabeta(board.move(move), False, board.turn, max_depth)
-        if result > best_eval:
-            best_eval = result
-            best_move = move
-    return best_move
+fn find_best_move<P: Piece>(board: dyn Board<P>, max_depth: i32) -> Move {
+    // default: max_depth=8
+    let mut best_eval = f32::NEG_INFINITY;
+    let mut best_move: Move = -1 as Move;
+    for m in board.legal_moves().iter() {
+        let result = alphabeta(board.make_move(m), false, board.turn, max_depth);
+        if result > best_eval {
+            best_eval = result;
+            best_move = m;
+        }
+    best_move
 }
