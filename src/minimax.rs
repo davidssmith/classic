@@ -112,7 +112,7 @@ pub fn find_best_move<B: Board<P>, P: Piece>(board: B, max_depth: i32) -> Move {
             alpha,
             beta,
         );
-        eprintln!("result: {} best_eval: {} depth: {}", result, best_eval, max_depth);
+        //eprintln!("result: {} best_eval: {} depth: {}", result, best_eval, max_depth);
         if result > best_eval {
             best_eval = result;
             best_move = m;
