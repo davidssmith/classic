@@ -29,6 +29,7 @@ dependencies = [
  "ndarray",
  "pathfinding",
  "rand",
+ "text_io",
 ]
 
 [[package]]
@@ -197,6 +198,12 @@ name = "rawpointer"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebac11a9d2e11f2af219b8b8d833b76b1ea0e054aa0e8d8e9e4cbde353bdf019"
+
+[[package]]
+name = "text_io"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cb170b4f47dc48835fbc56259c12d8963e542b05a24be2e3a1f5a6c320fd2d4"
 
 [[package]]
 name = "wasi"

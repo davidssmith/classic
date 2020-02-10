@@ -3,6 +3,8 @@ use std::fmt;
 
 extern crate classic;
 use classic::board::{Board, Move, Piece};
+use classic::minimax::find_best_move;
+use text_io::read;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum TTTPiece {
@@ -42,9 +44,6 @@ struct TTTBoard {
 }
 
 impl Board<TTTPiece> for TTTBoard {
-    // fn new(position: Vec<TTTPiece>, turn: TTTPiece) -> TTTBoard {
-    //     TTTBoard { position, turn }
-    // }
     fn turn(&self) -> TTTPiece {
         self.turn
     }
@@ -119,8 +118,42 @@ impl fmt::Display for TTTBoard {
     }
 }
 
+fn get_player_move<B: Board<P>, P: Piece>(board: &B) -> Move {
+    let mut player_move: Move = -1;
+    while !board.legal_moves().contains(&player_move) {
+        let line: String = read!("{}\n");
+        player_move = line.parse::<Move>().unwrap();
+    }
+    player_move
+}
+
+
 fn main() {
-    unimplemented!();
+    // main game loop
+    let mut board = TTTBoard { position: Vec::new(), turn: TTTPiece::X };
+    loop {
+        let human_move = get_player_move(&board);
+        board = board.make_move(human_move);
+        println!("{}", board);
+        if board.is_win() {
+            println!("Human wins!");
+            break;
+        } else if board.is_draw() {
+            println!("Draw!");
+            break;
+        }
+        let computer_move = find_best_move(board.clone(), 8);
+        println!("Computer move is {}", computer_move);
+        board = board.make_move(computer_move);
+        println!("{}", board);
+        if board.is_win() {
+            println!("Computer wins!");
+            break;
+        } else if board.is_draw() {
+            println!("Draw!");
+            break;
+        }
+    }
 }
 
 #[cfg(test)]
