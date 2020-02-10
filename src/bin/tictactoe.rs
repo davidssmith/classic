@@ -11,7 +11,7 @@ enum TTTPiece {
     E, // " "
 }
 
-impl TTTPiece {
+impl Piece for TTTPiece {
     fn opposite(&self) -> TTTPiece {
         match self {
             TTTPiece::X => TTTPiece::O,
@@ -36,15 +36,15 @@ impl fmt::Display for TTTPiece {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-struct TTTBoard<P: Piece> {
+struct TTTBoard {
     position: Vec<TTTPiece>,
     turn: TTTPiece,
 }
 
-impl<B: Board<P>, P: Piece> TTTBoard<B,P> {
-    fn new(position: Vec<TTTPiece>, turn: TTTPiece) -> TTTBoard {
-        TTTBoard { position, turn }
-    }
+impl Board<TTTPiece> for TTTBoard {
+    // fn new(position: Vec<TTTPiece>, turn: TTTPiece) -> TTTBoard {
+    //     TTTBoard { position, turn }
+    // }
     fn turn(&self) -> TTTPiece {
         self.turn
     }
@@ -90,7 +90,7 @@ impl<B: Board<P>, P: Piece> TTTBoard<B,P> {
                 && self.position[2] == self.position[6]
                 && self.position[2] != TTTPiece::E
     }
-    fn evaluate(&self, player: P) -> f32 {
+    fn evaluate(&self, player: TTTPiece) -> f32 {
         if self.is_win() && self.turn == player {
             return -1.0;
         } else if self.is_win() && self.turn != player {

@@ -1,6 +1,4 @@
 use crate::board::{Board, Move, Piece};
-use std::cmp::max;
-use std::cmp::min;
 
 fn f32_max(a: f32, b: f32) -> f32 {
     if a > b {
