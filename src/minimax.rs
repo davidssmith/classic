@@ -58,6 +58,8 @@ fn alphabeta<B: Board<P>, P: Piece>(
     if board.is_win() || board.is_draw() || max_depth == 0 {
         return board.evaluate(original_player);
     }
+    let mut a = alpha;
+    let mut b = beta;
     // Recursive case - maximize your gains or minimize the opponent's gains
     if maximizing {
         for m in board.legal_moves() {
@@ -66,15 +68,15 @@ fn alphabeta<B: Board<P>, P: Piece>(
                 false,
                 original_player,
                 max_depth - 1,
-                alpha,
-                beta,
+                a,
+                b,
             );
-            let alpha = f32_max(result, alpha);
-            if beta <= alpha {
+            a = f32_max(result, a);
+            if b <= a {
                 break;
             }
         }
-        return alpha;
+        return a;
     } else {
         // minimizing
         for m in board.legal_moves() {
@@ -83,16 +85,35 @@ fn alphabeta<B: Board<P>, P: Piece>(
                 true,
                 original_player,
                 max_depth - 1,
-                alpha,
-                beta,
+                a,
+                b,
             );
-            let beta = f32_min(result, beta);
-            if beta <= alpha {
+            b = f32_min(result, b);
+            if b <= a {
                 break;
             }
         }
-        return beta;
+        return b;
     }
+}
+
+// Find the best possible move in the current position
+// looking up to max_depth ahead
+pub fn find_best_move_minimax<B: Board<P>, P: Piece>(board: B, max_depth: i32) -> Move {
+    // default: max_depth=8
+    let mut best_eval = f32::NEG_INFINITY;
+    let mut best_move: Move = -1;
+    let alpha = f32::NEG_INFINITY;
+    let beta = f32::INFINITY;
+    for &m in board.legal_moves().iter() {
+        let result = minimax(board.make_move(m), false, board.turn(), max_depth);
+        //eprintln!("result: {} best_eval: {} depth: {}", result, best_eval, max_depth);
+        if result > best_eval {
+            best_eval = result;
+            best_move = m;
+        }
+    }
+    best_move
 }
 
 // Find the best possible move in the current position

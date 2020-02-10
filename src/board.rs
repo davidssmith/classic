@@ -5,7 +5,7 @@ pub trait Piece : Clone + Copy {
     fn opposite(&self) -> Self;
 }
 
-pub trait Board<P: Piece> {
+pub trait Board<P: Piece> : std::fmt::Display {
     fn turn(&self) -> P;
     fn make_move(&self, location: Move) -> Self;
     fn legal_moves(&self) -> Vec<Move>;

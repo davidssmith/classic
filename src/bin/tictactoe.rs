@@ -3,7 +3,7 @@ use std::fmt;
 
 extern crate classic;
 use classic::board::{Board, Move, Piece};
-use classic::minimax::find_best_move;
+use classic::minimax::{find_best_move, find_best_move_minimax};
 use text_io::read;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -225,7 +225,7 @@ mod tests {
             position: to_win_hard_position,
             turn: TTTPiece::X,
         };
-        let answer3 = find_best_move(test_board3, 3);
+        let answer3 = find_best_move(test_board3, 2);
         assert_eq!(answer3, 1);
     }
 }
