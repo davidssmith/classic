@@ -1,6 +1,7 @@
 //! connect 4 solver
 use classic::minimax::find_best_move;
 use std::{cmp, fmt};
+use std::ops::{Index,IndexMut};
 extern crate classic;
 use classic::board::{Piece, Board, Move};
 use text_io::read;
@@ -90,8 +91,8 @@ fn generate_segments(num_columns: u8, num_rows: u8, segment_length: u8) -> Vec<V
 struct C4Column(Vec<C4Piece>);
 
 impl C4Column {
-    fn new() -> C4Column {
-        C4Column(Vec::new())
+    fn new(n: usize) -> C4Column {
+        C4Column((0..n).map(|_| C4Piece::E).collect::<Vec<_>>())
     }
 
     fn full(&self) -> bool {
@@ -104,12 +105,24 @@ impl C4Column {
         }
         self.0.push(item);
     }
+}
 
-    fn get(&self, index: u8) -> C4Piece {
+impl Index<usize> for C4Column {
+    type Output = C4Piece;
+    fn index(&self, index: usize) -> &Self::Output {
         if index as usize > self.0.len() - 1 {
-            return C4Piece::E
+            return &mut C4Piece::E;
         }
-        self.0[index as usize]
+        &self.0[index]
+    }
+}
+
+impl IndexMut<usize> for C4Column {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        if index as usize > self.0.len() - 1 {
+            return &mut C4Piece::E;
+        }
+        &mut self.0[index]
     }
 }
 
@@ -128,7 +141,7 @@ impl C4Board {
     fn new(position: Option<Vec<C4Column>>, turn: C4Piece) -> C4Board {
         // turn default: C4Piece::B
         let position = match position {
-            None => (0..NUM_COLS).map(|_| C4Column::new()).collect::<Vec<_>>(),
+            None => (0..NUM_COLS).map(|_| C4Column::new(NUM_ROWS)).collect::<Vec<_>>(),
             Some(p) => p,
         };
         let segments: Vec<Vec<(u8,u8)>> = generate_segments(NUM_COLS, NUM_ROWS, SEGMENT_LENGTH);
@@ -216,13 +229,13 @@ impl Board<C4Piece> for C4Board {
 impl fmt::Display for C4Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut display = String::new();
-        for r in (0..NUM_ROWS).reversed() {
-            display.push("|".to_string());
+        for r in (0..NUM_ROWS).rev() {
+            display.push_str("|");
             for c in 0..NUM_COLS {
-                display.push(format!("{}", self.position[c as usize][r as usize]));
-                display.push("|".to_string());
+                display.push_str(&format!("{}", self.position[c as usize][r as usize]));
+                display.push_str("|");
             }
-            display.push("\n".to_string());
+            display.push_str("\n");
         }
         write!(f, "{}", display)
     }
@@ -241,7 +254,9 @@ fn get_player_move<B: Board<P>, P: Piece>(board: &B) -> Move {
 
 fn main() {
     // main game loop
-    let mut board = C4Board::new((0..9).map(|_| C4Piece::E).collect::<Vec<_>>(), C4Piece::R);
+
+    let position = Some((0..9).map(|_| C4Piece::E).collect::<Vec<_>>());
+    let mut board = C4Board::new(position, C4Piece::R);
     loop {
         let human_move = get_player_move(&board);
         board = board.make_move(human_move);
