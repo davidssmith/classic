@@ -141,7 +141,8 @@ impl C4Board {
     fn new(position: Option<Vec<C4Column>>, turn: C4Piece) -> C4Board {
         // turn default: C4Piece::B
         let position = match position {
-            None => (0..NUM_COLS).map(|_| C4Column::new(NUM_ROWS)).collect::<Vec<_>>(),
+            None => (0..NUM_COLS).map(|_| C4Column::new(NUM_ROWS as usize))
+                .collect::<Vec<_>>(),
             Some(p) => p,
         };
         let segments: Vec<Vec<(u8,u8)>> = generate_segments(NUM_COLS, NUM_ROWS, SEGMENT_LENGTH);
@@ -201,7 +202,9 @@ impl Board<C4Piece> for C4Board {
      }
 
     fn legal_moves(&self) -> Vec<Move> {
-        (0..NUM_COLS).filter(|&c| !self.position[c as usize].full()).collect::<Vec<_>>()
+        (0..NUM_COLS).filter(|&c| !self.position[c as usize].full())
+            .map(|x| x as i32)
+            .collect::<Vec<_>>()
     }
 
     fn is_win(&self) -> bool {

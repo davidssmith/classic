@@ -3,7 +3,7 @@ use std::fmt;
 
 extern crate classic;
 use classic::board::{Board, Move, Piece};
-use classic::minimax::{find_best_move, find_best_move_minimax};
+use classic::minimax::find_best_move;
 use text_io::read;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
