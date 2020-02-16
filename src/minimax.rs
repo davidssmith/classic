@@ -103,8 +103,8 @@ pub fn find_best_move_minimax<B: Board<P>, P: Piece>(board: B, max_depth: i32) -
     // default: max_depth=8
     let mut best_eval = f32::NEG_INFINITY;
     let mut best_move: Move = -1;
-    let alpha = f32::NEG_INFINITY;
-    let beta = f32::INFINITY;
+    //let alpha = f32::NEG_INFINITY;
+    //let beta = f32::INFINITY;
     for &m in board.legal_moves().iter() {
         let result = minimax(board.make_move(m), false, board.turn(), max_depth);
         //eprintln!("result: {} best_eval: {} depth: {}", result, best_eval, max_depth);
