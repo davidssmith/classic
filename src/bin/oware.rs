@@ -1,6 +1,7 @@
 //! tic-tac-toe solver
 use std::fmt;
 use rand::prelude::*;
+use rayon::prelude::*;
 
 extern crate classic;
 use classic::board::{Board, Move, Piece};
@@ -165,49 +166,61 @@ fn get_player_move<B: Board<P>, P: Piece>(board: &B) -> Move {
     }
 }
 
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone)]
+enum OwareResult {
+    Win1,
+    Win2,
+    Draw,
+}
+
+impl OwareResult {
+    fn to_score(&self) -> f32 {
+        match self {
+            Self::Win1 => 1.0,
+            Self::Win2 => -1.0,
+            Self::Draw => 0.0,
+        }
+    }
+}
+
 fn main() {
-    let ngames = 100;
-    let search_depth = 7;
+    let ngames = 1000;
     let mut wins1 = 0;
     let mut wins2 = 0;
     let mut draws = 0;
-    let first_move = 2;
-    for g in 0..ngames {
-        print!("game {}: ", g);
-        let mut board = OwareBoard::default();
-        let mut m = 0;
-        loop {
-            m += 1;
-            //println!("{}.", m);
-            let p1 = find_best_move(board.clone(), search_depth);
-            board = board.make_move(p1);
-            //println!("{}", board);
-            if board.is_win() {
-                wins1 += 1;
-                println!("1");
-                break;
-            } else if board.is_draw() {
-                draws += 1;
-                println!("draw");
-                break;
-            }
-            let p2 = find_best_move(board.clone(), search_depth);
-            board = board.make_move(p2);
-            //println!("{}", board);
-            if board.is_win() {
-                wins2 += 1;
-                println!("2");
-                break;
-            } else if board.is_draw() {
-                draws += 1;
-                println!("draw");
-                break;
-            }
+    //let results = (0..ngames).map(|_| run_game()).collect::<Vec<OwareResult>>();
+    let results: Vec<f32> = (0..ngames).into_par_iter()
+        .map(|_| run_game().to_score())
+        .collect::<Vec<f32>>();
+    println!("{}", 0.5*(results.iter().sum::<f32>() / (ngames as f32) + 1.0));
+    //let ngames = ngames as f32;
+    //println!("wins1: {}  wins2: {}  draws: {}", wins1 as f32 / ngames, wins2 as f32 / ngames,
+     //   draws as f32 / ngames);
+}
+
+fn run_game() -> OwareResult {
+    let search_depth = 5;
+    let mut board = OwareBoard::default();
+    loop {
+        //println!("{}.", m);
+        let p1 = find_best_move(board.clone(), search_depth);
+        board = board.make_move(p1);
+        //println!("{}", board);
+        if board.is_win() {
+            return OwareResult::Win1;
+        } else if board.is_draw() {
+            return OwareResult::Draw;
+        }
+        let p2 = find_best_move(board.clone(), search_depth);
+        board = board.make_move(p2);
+        //println!("{}", board);
+        if board.is_win() {
+            return OwareResult::Win2;
+        } else if board.is_draw() {
+            return OwareResult::Draw;
         }
     }
-    let ngames = ngames as f32;
-    println!("wins1: {}  wins2: {}  draws: {}", wins1 as f32 / ngames, wins2 as f32 / ngames,
-        draws as f32 / ngames);
 }
 
 fn main2() {
